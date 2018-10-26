@@ -4,9 +4,7 @@
 import time
 import requests
 import subprocess
-
-rules_list = []
-
+import os
 
 class TimeoutError(Exception):
     """自定义抛出异常"""
@@ -48,18 +46,13 @@ def iptable_set(code,iprules_list):
             command(cmd_stop)
             # subprocess.call(["service iptables stop"], shell=True)
         elif code == "open":
-            for iprule in iprules_list:
-                if iprule in rules_list:
-                    pass
-                else:
-                    try:
-                        with open("/etc/sysconfig/iptables", "a+", encoding='utf-8') as fp:
-                            fp.write(iprule)
-                    except:
-                        print('%s规则出现错误' % iprule)
-                        break
-                    rules_list.append(iprule)
-            fp.close()
+            # 备份当前filter规则内容为filter.txt文件
+            cmd_backFile = 'iptables-save -t filter > /etc/sysconfig/backfilter.txt'
+            command(cmd_backFile)
+            with open("/etc/sysconfig/filter.txt", "a+", encoding='utf-8') as fp:
+                fp.write('\n'.join(iprules_list))
+                fp.close()
+            if
             cmd_save = "service iptables save"
             command(cmd_save)
             cmd_start = "systemctl start iptables"
