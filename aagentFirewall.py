@@ -46,7 +46,6 @@ def iptable_set(code,iprules_list):
         if code == "close":
             cmd_stop = "systemctl stop iptables "
             command(cmd_stop)
-            # subprocess.call(["service iptables stop"], shell=True)
         elif code == "open":
             for iprule in iprules_list:
                 if iprule in rules_list:

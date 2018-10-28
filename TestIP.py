@@ -4,14 +4,14 @@
 import time
 import requests
 import subprocess
-import os
+import commands
 
 class TimeoutError(Exception):
     """自定义抛出异常"""
     pass
 
 
-def command(iprule, timeout=60):
+def command_retry(iprule, timeout=60):
     p = subprocess.Popen(iprule, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
     t_start = time.time()
     excete_time = 0
@@ -43,21 +43,23 @@ def iptable_set(code,iprules_list):
     try:
         if code == "close":
             cmd_stop = "systemctl stop iptables "
-            command(cmd_stop)
-            # subprocess.call(["service iptables stop"], shell=True)
+            command_retry(cmd_stop)
         elif code == "open":
-            # 备份当前filter规则内容为filter.txt文件
-            cmd_backFile = 'iptables-save -t filter > /etc/sysconfig/backfilter.txt'
-            command(cmd_backFile)
-            with open("/etc/sysconfig/filter.txt", "a+", encoding='utf-8') as fp:
+            with open("'/etc/sysconfig/insertIptables'", "a+", encoding='utf-8') as fp:
                 fp.write('\n'.join(iprules_list))
                 fp.close()
-            if
+            cmd_compare = "diff -bBi /etc/sysconfig/insertIptables /etc/sysconfig/iptsbles"
+            retcode,ret = commands.getstatusoutput(cmd_compare)
+            if retcode == 0 and ret == 0:
+                return '规则一致'
+            else:
+                cmd_replace = "cat /etc/sysconfig/insertIptables >> /etc/sysconfig/iptsbles"
+                cmd_reset = "systemctl restart iptables.service"
+                command_retry(cmd_reset)
             cmd_save = "service iptables save"
-            command(cmd_save)
+            command_retry(cmd_save)
             cmd_start = "systemctl start iptables"
-            cmd_reset = "systemctl restart iptables.service"
-            command(cmd_start)
+            command_retry(cmd_start)
         else:
             print("输入参数不对")
     except Exception as e:
