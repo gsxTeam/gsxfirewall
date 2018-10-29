@@ -48,14 +48,15 @@ def iptable_set(code,iprules_list):
             with open("'/etc/sysconfig/insertIptables'", "a+", encoding='utf-8') as fp:
                 fp.write('\n'.join(iprules_list))
                 fp.close()
-            cmd_compare = "diff -bBi /etc/sysconfig/insertIptables /etc/sysconfig/iptsbles"
+            cmd_compare = "diff -bBi /etc/sysconfig/insertIptables /etc/sysconfig/iptables"
             retcode,ret = commands.getstatusoutput(cmd_compare)
             if retcode == 0 and ret == 0:
                 return '规则一致'
             else:
-                cmd_replace = "cat /etc/sysconfig/insertIptables >> /etc/sysconfig/iptsbles"
-                cmd_reset = "systemctl restart iptables.service"
-                command_retry(cmd_reset)
+                cmd_replace = "cat /etc/sysconfig/insertIptables >> /etc/sysconfig/iptables"
+                command_retry(cmd_replace)
+                # cmd_reset = "systemctl restart iptables.service"
+                # command_retry(cmd_reset)
             cmd_save = "service iptables save"
             command_retry(cmd_save)
             cmd_start = "systemctl start iptables"
